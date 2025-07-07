@@ -3,6 +3,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, constr
 from pathlib import Path
+from pydantic import ValidationError
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -29,5 +31,11 @@ def post_signup(
     name: str = Form(...),
     email: str = Form(...)
 ):
-    form = SignupForm(name=name, email=email)
+    try:
+        form = SignupForm(name=name, email=email)
+    except ValidationError as e:
+        return JSONResponse(
+            status_code=422,
+            content={"detail": e.errors()}
+        )
     return {"message": f"Thanks for subscribing, {form.name}!"}
